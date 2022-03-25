@@ -23,7 +23,7 @@ const Application = () => {
         
         setDID(localStorage.getItem('authenticatedDID'));
 
-    }, [])
+    }, [hasAddedStorageListener])
 
 
     return (
