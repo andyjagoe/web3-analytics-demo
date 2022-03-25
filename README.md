@@ -2,6 +2,8 @@
 
 This project demonstrates how [Analytics](https://github.com/davidwells/analytics), a lighweight analytics abstration layer, can be used with a custom back-end to send web3 tracking data to [Ceramic](https://ceramic.network/), a decentralized data network.
 
+[See demo](https://celadon-pothos-120129.netlify.app/)
+
 The key component is analytics-plugin-ceramic.js, which creates and authenticates a DID if one doesn't exist, and saves tracking events to Ceramic. The user controls all the data and can delete it whenever they like. No one else can delete or modify the data. analytics-plugin-ceramic.js will be migrated out to a standalone project and perhaps made available via npm.
 
 This example actually uses two back-ends in parallel, demonstrating how data could be sent to both Ceramic and Google Analytics simultaneously. The goal is not to send web3 data to Google Analytics, but rather show how it's possible to temporarily use their nice dashboards and tooling while standing up a decentralized web3 analytics solution without worrying about migration of data or switching challenges. 
