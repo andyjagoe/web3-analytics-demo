@@ -1,13 +1,23 @@
 import { CeramicClient } from '@ceramicnetwork/http-client';
 import { TileDocument } from '@ceramicnetwork/stream-tile';
+import { TileLoader } from '@glazed/tile-loader'
 import { DID } from 'dids';
 import { Ed25519Provider } from 'key-did-provider-ed25519';
 import { getResolver } from 'key-did-resolver';
-import toast from 'react-hot-toast';
+import { DataModel } from '@glazed/datamodel'
+import { DIDDataStore } from '@glazed/did-datastore'
+import toast from 'react-hot-toast'
+import modelAliases from './model.json'
 
 
-const API_URL = 'https://ceramic-clay.3boxlabs.com';
-const ceramic = new CeramicClient(API_URL);
+
+
+// Set up Ceramic
+const ceramic = new CeramicClient('http://localhost:7007')
+const cache = new Map()
+const loader = new TileLoader({ ceramic, cache })
+const model = new DataModel({ loader, model: modelAliases })
+const dataStore = new DIDDataStore({ ceramic, loader, model })
 
 
 export default function ceramicAnalytics(userConfig) {
@@ -28,21 +38,36 @@ export default function ceramicAnalytics(userConfig) {
         return did;
     }
 
-
     async function sendToCeramic(payload, description, icon) {
         console.log(payload);
 
-        const doc = await TileDocument.create(ceramic, payload);
-        const key = shortenKey(doc.id.cid.string);
+        // Update Ceramic
+        const [doc, pagesList] = await Promise.all([
+            model.createTile('Page', payload),
+            dataStore.get('pages'),
+          ])
+        const pages = pagesList?.pages ?? []
+        await dataStore.set('pages', {
+            pages: [...pages, { id: doc.id.toUrl(), title: payload.meta.rid }],
+        })
+
+        // Report update to UI and console
+        const docID = doc.id.toString()
+        const key = shortenKey(docID);
         toast(`${ description } saved in ceramic: ${ key }`, {
             icon: icon,
         });
-        console.log(doc.id);
-    
+        console.log(`New document id: ${docID}`)
+
+        // Load pages to verify they increased
+        const newPages = await dataStore.get('pages')
+        console.log(newPages)
+
+        // Load Page to verify it was added correctly
         const retrieved = await TileDocument.load(ceramic, doc.id);
         console.log(retrieved.content);
-    }
 
+    }
 
     function shortenKey(key) {
         if (key != null) {
@@ -54,24 +79,24 @@ export default function ceramicAnalytics(userConfig) {
         return '';
     }
       
-
-    // return object for analytics to use
+    // Return object for analytics to use
     return {
       name: 'ceramic-analytics',
       config: {},
       initialize: async ({ config }) => {
         let seed;
 
+        
         const ceramicSeed = JSON.parse(localStorage.getItem('ceramicSeed'));
         if (!ceramicSeed) {
-            // create new seed
+            // Create new seed
             seed = crypto.getRandomValues(new Uint8Array(32));
             localStorage.setItem('ceramicSeed', JSON.stringify(Array.from(seed)));
         } else {
-            // use existing seed
+            // Use existing seed
             seed = new Uint8Array(JSON.parse(localStorage.getItem('ceramicSeed')));
         }
-
+        
         const did = await authenticateCeramic(seed);
         localStorage.setItem('authenticatedDID', did.id);
 
