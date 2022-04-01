@@ -13,8 +13,8 @@ import modelAliases from './model.json'
 
 
 // Set up Ceramic
-//const API_URL = 'https://ceramic-clay.3boxlabs.com'
-const API_URL = 'http://localhost:7007'
+const API_URL = 'https://ceramic-clay.3boxlabs.com'
+//const API_URL = 'http://localhost:7007'
 const ceramic = new CeramicClient(API_URL)
 
 const cache = new Map()
