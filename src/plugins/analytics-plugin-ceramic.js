@@ -80,6 +80,7 @@ export default function ceramicAnalytics(userConfig) {
       }
       return '';
   }
+  
     
   // Return object for analytics to use
   return {
