@@ -3,6 +3,7 @@ import { TileDocument } from '@ceramicnetwork/stream-tile';
 import { TileLoader } from '@glazed/tile-loader'
 import { DID } from 'dids';
 import { Ed25519Provider } from 'key-did-provider-ed25519';
+import { Secp256k1Provider } from './Secp256k1Provider.ts';
 import { getResolver } from 'key-did-resolver';
 import { DataModel } from '@glazed/datamodel'
 import { DIDDataStore } from '@glazed/did-datastore'
@@ -28,8 +29,10 @@ export default function ceramicAnalytics(userConfig) {
 
   // `seed` must be a 32-byte long Uint8Array
   async function authenticateCeramic(seed) {
-      const provider = new Ed25519Provider(seed)
+      const provider = new Secp256k1Provider(seed)
+      console.log(provider)
       const did = new DID({ provider, resolver: getResolver() })
+      console.log(did)
 
       // Authenticate the DID with the provider
       await did.authenticate()
