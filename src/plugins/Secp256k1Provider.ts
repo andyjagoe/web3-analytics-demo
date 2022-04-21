@@ -16,8 +16,6 @@ import elliptic from 'elliptic'
 const EC = elliptic.ec;
 const ec = new EC('secp256k1')
 
-const B64 = 'base64pad'
-
 function toStableObject(obj: Record<string, any>): Record<string, any> {
   return JSON.parse(stringify(obj)) as Record<string, any>
 }

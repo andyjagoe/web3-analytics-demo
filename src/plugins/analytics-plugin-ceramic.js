@@ -2,7 +2,6 @@ import { CeramicClient } from '@ceramicnetwork/http-client';
 import { TileDocument } from '@ceramicnetwork/stream-tile';
 import { TileLoader } from '@glazed/tile-loader'
 import { DID } from 'dids';
-import { Ed25519Provider } from 'key-did-provider-ed25519';
 import { Secp256k1Provider } from './Secp256k1Provider.ts';
 import { getResolver } from 'key-did-resolver';
 import { DataModel } from '@glazed/datamodel'
