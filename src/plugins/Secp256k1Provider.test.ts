@@ -6,7 +6,7 @@ import elliptic from 'elliptic'
 const EC = elliptic.ec;
 const ec = new EC('secp256k1')
 
-import { encodeDID, Secp256k1Provider } from '../src/plugins/Secp256k1Provider'
+import { encodeDID, Secp256k1Provider } from './Secp256k1Provider'
 
 
 const b64urlToObj = (s: string): Record<string, any> =>
