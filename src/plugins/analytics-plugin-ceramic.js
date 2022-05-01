@@ -1,14 +1,21 @@
-import { CeramicClient } from '@ceramicnetwork/http-client';
-import { TileDocument } from '@ceramicnetwork/stream-tile';
+import { CeramicClient } from '@ceramicnetwork/http-client'
+import { TileDocument } from '@ceramicnetwork/stream-tile'
 import { TileLoader } from '@glazed/tile-loader'
 import { DID } from 'dids';
-import { Secp256k1Provider } from 'key-did-provider-secp256k1';
-import { getResolver } from 'key-did-resolver';
+import { Secp256k1Provider } from 'key-did-provider-secp256k1'
+import { getResolver } from 'key-did-resolver'
 import { DataModel } from '@glazed/datamodel'
 import { DIDDataStore } from '@glazed/did-datastore'
 import toast from 'react-hot-toast'
+import { ethers } from "ethers"
+import * as u8a from 'uint8arrays'
 import modelAliases from './model.json'
-
+import elliptic from 'elliptic'
+import { RelayProvider } from "@opengsn/provider"
+import Web3Analytics from "./Web3Analytics.json"
+const EC = elliptic.ec;
+const ec = new EC('secp256k1')
+const Web3HttpProvider = require( 'web3-providers-http')
 
 
 
@@ -102,8 +109,98 @@ export default function ceramicAnalytics(userConfig) {
           seed = new Uint8Array(JSON.parse(localStorage.getItem('ceramicSeed')));
       }
       
+      // Print private seed
+      console.log('private seed')
+      console.log(seed)
+      console.log('public key hex from elliptic')
+      console.log(ec.keyFromPrivate(seed).getPublic(true, 'hex'))
+
+      // Determine ethereum private and public keys
+      const privateKey = "0x"+ u8a.toString(seed, 'base16')
+      console.log(`privateKey: ${ privateKey }`)
+      var wallet = new ethers.Wallet(privateKey)
+      console.log("Address: " + wallet.address)
+      const isValid = ethers.utils.isAddress(wallet.address) 
+      console.log(`Address is valid? ${ isValid }`)
+
+      // Authenticate Ceramic
       const did = await authenticateCeramic(seed);
       localStorage.setItem('authenticatedDID', did.id);
+
+      // Try to decode did to ethereum public key
+      const toDecode = did.id.substring(9);
+      console.log(`did toDecode: ${ toDecode }`)
+      const u8ak = u8a.fromString(toDecode, 'base58btc')
+      console.log('did public key uint8array')
+      console.log(u8ak)
+      const part1 = u8ak.subarray(2,35);
+      console.log('public key uint8array w/ leading 2 bytes cut')
+      console.log(part1)
+      console.log('public key in hex')
+      const hexKey = u8a.toString(part1, 'base16')
+      console.log(hexKey)
+
+      // Compare to public key from elliptic
+      const k = "0x" + ec.keyFromPublic(part1).getPublic(false, "hex")
+      console.log('public key from elliptic')
+      console.log(k)
+
+      // compute public key from ethers
+      const publicKey = ethers.utils.computePublicKey(part1)
+      console.log('public key from ethers')
+      console.log(publicKey)
+
+      // compute address
+      const address = ethers.utils.getAddress(ethers.utils.hexDataSlice(ethers.utils.keccak256(ethers.utils.hexDataSlice(publicKey, 1)), 12))
+      console.log(address)
+
+
+      //TODO: Add check to see if user is already registered on blockchain
+
+      // attempt to register user on blockchain
+
+      const appId = '0xe6d24e69a35944fd15ef2948ca8e07067bd5d57a'
+      const nodeUrl = process.env.NODE_URL
+      const web3analyticsAddress = process.env.WEB3ANALYTICS
+      const paymasterAddress = process.env.PAYMASTER   
+
+
+      const confRinkeby = await { 
+        paymasterAddress: paymasterAddress,
+        relayLookupWindowBlocks: 1e5,
+        relayRegistrationLookupBlocks: 1e5,
+        pastEventsQueryMaxPageSize: 2e4,
+      }
+      const confStandard = await { 
+        paymasterAddress: paymasterAddress,
+      }
+
+      const web3provider = new 
+        Web3HttpProvider(nodeUrl)
+
+      let gsnProvider =
+      await RelayProvider.newProvider({
+        provider: web3provider,
+        config: confStandard }).init()
+
+      const signer = new ethers.Wallet(privateKey)
+      gsnProvider.addAccount(signer.privateKey)
+
+      const provider = new ethers.providers.Web3Provider(gsnProvider)
+
+      const contract = await new
+			ethers.Contract(web3analyticsAddress, Web3Analytics,
+				provider.getSigner(signer.address, signer.privateKey))
+
+      const transaction = await contract.addUser(
+        did, 
+        appId,
+        {gasLimit: 1e6}
+      )
+      console.log(transaction)
+      const receipt = await provider.waitForTransaction(transaction.hash)
+      console.log(receipt)
+      
 
       // Load tracked events
       const newEvents = await dataStore.get('events')
