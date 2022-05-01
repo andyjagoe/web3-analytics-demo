@@ -50,6 +50,51 @@ export default function ceramicAnalytics(userConfig) {
       return did;
   }
 
+  async function registerUser(privateKey, did) {
+    const appId = '0xe6d24e69a35944fd15ef2948ca8e07067bd5d57a'
+    const nodeUrl = process.env.NODE_URL
+    const web3analyticsAddress = process.env.WEB3ANALYTICS
+    const paymasterAddress = process.env.PAYMASTER   
+
+
+    const confRinkeby = await { 
+      paymasterAddress: paymasterAddress,
+      relayLookupWindowBlocks: 1e5,
+      relayRegistrationLookupBlocks: 1e5,
+      pastEventsQueryMaxPageSize: 2e4,
+    }
+    const confStandard = await { 
+      paymasterAddress: paymasterAddress,
+    }
+
+    const web3provider = new 
+      Web3HttpProvider(nodeUrl)
+
+    let gsnProvider =
+    await RelayProvider.newProvider({
+      provider: web3provider,
+      config: confStandard }).init()
+
+    const signer = new ethers.Wallet(privateKey)
+    gsnProvider.addAccount(signer.privateKey)
+
+    const provider = new ethers.providers.Web3Provider(gsnProvider)
+
+    const contract = await new
+    ethers.Contract(web3analyticsAddress, Web3Analytics,
+      provider.getSigner(signer.address, signer.privateKey))
+
+    const transaction = await contract.addUser(
+      did, 
+      appId,
+      {gasLimit: 1e6}
+    )
+    console.log(transaction)
+    const receipt = await provider.waitForTransaction(transaction.hash)
+    console.log(receipt)
+
+  }
+
   async function sendEventToCeramic(payload, description, icon) {
     console.log(payload);
 
@@ -158,48 +203,7 @@ export default function ceramicAnalytics(userConfig) {
       //TODO: Add check to see if user is already registered on blockchain
 
       // attempt to register user on blockchain
-
-      const appId = '0xe6d24e69a35944fd15ef2948ca8e07067bd5d57a'
-      const nodeUrl = process.env.NODE_URL
-      const web3analyticsAddress = process.env.WEB3ANALYTICS
-      const paymasterAddress = process.env.PAYMASTER   
-
-
-      const confRinkeby = await { 
-        paymasterAddress: paymasterAddress,
-        relayLookupWindowBlocks: 1e5,
-        relayRegistrationLookupBlocks: 1e5,
-        pastEventsQueryMaxPageSize: 2e4,
-      }
-      const confStandard = await { 
-        paymasterAddress: paymasterAddress,
-      }
-
-      const web3provider = new 
-        Web3HttpProvider(nodeUrl)
-
-      let gsnProvider =
-      await RelayProvider.newProvider({
-        provider: web3provider,
-        config: confStandard }).init()
-
-      const signer = new ethers.Wallet(privateKey)
-      gsnProvider.addAccount(signer.privateKey)
-
-      const provider = new ethers.providers.Web3Provider(gsnProvider)
-
-      const contract = await new
-			ethers.Contract(web3analyticsAddress, Web3Analytics,
-				provider.getSigner(signer.address, signer.privateKey))
-
-      const transaction = await contract.addUser(
-        did, 
-        appId,
-        {gasLimit: 1e6}
-      )
-      console.log(transaction)
-      const receipt = await provider.waitForTransaction(transaction.hash)
-      console.log(receipt)
+      registerUser(privateKey, did);
       
 
       // Load tracked events
