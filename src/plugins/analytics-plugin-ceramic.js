@@ -155,34 +155,38 @@ export default function ceramicAnalytics(userConfig) {
       console.log(address)
 
 
-      // attempt to register user on blockchain
-      const web3analyticsAddress = '0x79b19e19619b4365A2C90c1843aF2c6817E8EC7c'
-      const paymasterAddress = '0x225EeC7D2db5D6E5cbC4668e0a17d79C6c7f9786'   // Web3AnalyticsPaymaster
-      const forwarderAddress = '0x83A54884bE4657706785D7309cf46B58FE5f6e8a'
+      //TODO: Add check to see if user is already registered on blockchain
 
-      const conf = await { 
-        forwarderAddress: forwarderAddress,
+      // attempt to register user on blockchain
+
+      const appId = '0xe6d24e69a35944fd15ef2948ca8e07067bd5d57a'
+      const nodeUrl = process.env.NODE_URL
+      const web3analyticsAddress = process.env.WEB3ANALYTICS
+      const paymasterAddress = process.env.PAYMASTER   
+
+
+      const confRinkeby = await { 
         paymasterAddress: paymasterAddress,
         relayLookupWindowBlocks: 1e5,
         relayRegistrationLookupBlocks: 1e5,
         pastEventsQueryMaxPageSize: 2e4,
       }
+      const confStandard = await { 
+        paymasterAddress: paymasterAddress,
+      }
 
       const web3provider = new 
-        Web3HttpProvider('https://eth-rinkeby.alchemyapi.io/v2/MQHVOzHiX5mQs9IW9TZWaaKQuEUJJFRK')
-      const deploymentProvider = new ethers.providers.Web3Provider(web3provider)
+        Web3HttpProvider(nodeUrl)
 
       let gsnProvider =
       await RelayProvider.newProvider({
         provider: web3provider,
-        config: { paymasterAddress: paymasterAddress} }).init()
+        config: confStandard }).init()
 
       const signer = new ethers.Wallet(privateKey)
       gsnProvider.addAccount(signer.privateKey)
 
       const provider = new ethers.providers.Web3Provider(gsnProvider)
-
-      //const acct = provider.provider.newAccount()   // for testing random accounts
 
       const contract = await new
 			ethers.Contract(web3analyticsAddress, Web3Analytics,
@@ -190,7 +194,7 @@ export default function ceramicAnalytics(userConfig) {
 
       const transaction = await contract.addUser(
         did, 
-        '0xe6d24e69a35944fd15ef2948ca8e07067bd5d57a',
+        appId,
         {gasLimit: 1e6}
       )
       console.log(transaction)

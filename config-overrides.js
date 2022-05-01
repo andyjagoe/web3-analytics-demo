@@ -1,4 +1,6 @@
 const webpack = require('webpack');
+const Dotenv = require('dotenv-webpack');
+
 
 module.exports = function override(config) {
     const fallback = config.resolve.fallback || {};
@@ -16,6 +18,7 @@ module.exports = function override(config) {
     })
     config.resolve.fallback = fallback;
     config.plugins = (config.plugins || []).concat([
+        new Dotenv({systemvars: true,}),
         new webpack.ProvidePlugin({
             process: 'process/browser',
             Buffer: ['buffer', 'Buffer']
