@@ -2,7 +2,7 @@ const webpack = require('webpack');
 const Dotenv = require('dotenv-webpack');
 
 
-module.exports = function override(config) {
+module.exports = function override(config, env) {
     const fallback = config.resolve.fallback || {};
     Object.assign(fallback, {
         "crypto": require.resolve("crypto-browserify"),
@@ -18,7 +18,10 @@ module.exports = function override(config) {
     })
     config.resolve.fallback = fallback;
     config.plugins = (config.plugins || []).concat([
-        new Dotenv({systemvars: true,}),
+        new Dotenv({
+            systemvars: true,
+            allowEmptyValues: true,
+        }),
         new webpack.ProvidePlugin({
             process: 'process/browser',
             Buffer: ['buffer', 'Buffer']
