@@ -203,7 +203,7 @@ export default function ceramicAnalytics(userConfig) {
       //TODO: Add check to see if user is already registered on blockchain
 
       // attempt to register user on blockchain
-      registerUser(privateKey, did);
+      registerUser(privateKey, did.id);
       
 
       // Load tracked events
