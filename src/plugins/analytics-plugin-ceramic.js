@@ -104,7 +104,7 @@ export default function ceramicAnalytics(userConfig) {
       ])
     const events = eventsList?.events ?? []
     await dataStore.set('events', {
-        events: [...events, { id: doc.id.toUrl(), title: payload.meta.rid }],
+        events: [...events, { id: doc.id.toUrl(), updated_at: doc.content.meta.ts }],
     })
 
     // Report update to UI and console
