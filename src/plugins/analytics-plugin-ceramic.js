@@ -20,9 +20,8 @@ const Web3HttpProvider = require( 'web3-providers-http')
 
 
 // Set up Ceramic
-const API_URL = 'https://ceramic-clay.3boxlabs.com'
-//const API_URL = 'http://localhost:7007'
-const ceramic = new CeramicClient(API_URL)
+const CERAMIC_URL = process.env.CERAMIC_URL
+const ceramic = new CeramicClient(CERAMIC_URL)
 
 const cache = new Map()
 const loader = new TileLoader({ ceramic, cache })
@@ -51,7 +50,7 @@ export default function ceramicAnalytics(userConfig) {
   }
 
   async function registerUser(privateKey, did) {
-    const appId = '0xe6d24e69a35944fd15ef2948ca8e07067bd5d57a'
+    const appId = process.env.APP_ID
     const nodeUrl = process.env.NODE_URL
     const web3analyticsAddress = process.env.WEB3ANALYTICS
     const paymasterAddress = process.env.PAYMASTER   
