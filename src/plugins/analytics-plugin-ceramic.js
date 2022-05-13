@@ -20,9 +20,7 @@ const Web3HttpProvider = require( 'web3-providers-http')
 
 
 // Set up Ceramic
-const CERAMIC_URL = process.env.CERAMIC_URL
-const ceramic = new CeramicClient(CERAMIC_URL)
-
+const ceramic = new CeramicClient(process.env.CERAMIC_URL)
 const cache = new Map()
 const loader = new TileLoader({ ceramic, cache })
 const model = new DataModel({ loader, model: modelAliases })
@@ -30,7 +28,8 @@ const dataStore = new DIDDataStore({ ceramic, loader, model })
 
 
 export default function ceramicAnalytics(userConfig) {
-  // plugin docs: https://getanalytics.io/plugins/writing-plugins/
+  // plugin docs: https://getanalytics.io/plugins/writing-plugins
+  let authenticatedDID
 
   // `seed` must be a 32-byte long Uint8Array
   async function authenticateCeramic(seed) {
@@ -94,17 +93,28 @@ export default function ceramicAnalytics(userConfig) {
 
   }
 
-  async function sendEventToCeramic(payload, description, icon) {
+  async function sendEventToCeramic(payload, did, description, icon) {
+    // Add data to Event payload
+    payload.did = authenticatedDID.id
+    payload.updated_at = payload.meta.ts
+
     console.log(payload);
 
-    // Update Ceramic
+    // Create Event in Ceramic
     const [doc, eventsList] = await Promise.all([
         model.createTile('Event', payload),
         dataStore.get('events'),
-      ])
+    ])
+
+    // Make ID of Event object part of the object itself
+    const content = doc.content
+    content.id = doc.id.toString()
+    await doc.update(content)
+
+    // Add Event object to Events index
     const events = eventsList?.events ?? []
     await dataStore.set('events', {
-        events: [...events, { id: doc.id.toUrl(), updated_at: doc.content.meta.ts }],
+        events: [...events, { id: doc.id.toUrl(), updated_at: payload.meta.ts }],
     })
 
     // Report update to UI and console
@@ -114,14 +124,13 @@ export default function ceramicAnalytics(userConfig) {
     });
     console.log(`New document id: ${docID}`)
 
-    // Load pages to verify they increased
+    // Load Event index again to verify it increased
     const newEvents = await dataStore.get('events')
     console.log(newEvents)
 
-    // Load Page to verify it was added correctly
+    // Load Event document to verify it was added correctly
     const retrieved = await TileDocument.load(ceramic, doc.id);
-    console.log(retrieved.content);
-
+    console.log(retrieved.content);    
   }
 
   function shortenKey(key) {
@@ -155,13 +164,13 @@ export default function ceramicAnalytics(userConfig) {
       const privateKey = "0x"+ u8a.toString(seed, 'base16')
 
       // Authenticate Ceramic
-      const did = await authenticateCeramic(seed);
-      localStorage.setItem('authenticatedDID', did.id);
+      authenticatedDID = await authenticateCeramic(seed);
+      localStorage.setItem('authenticatedDID', authenticatedDID.id);
 
       //TODO: Add check to see if user is already registered on blockchain
 
       // attempt to register user on blockchain
-      registerUser(privateKey, did.id);
+      registerUser(privateKey, authenticatedDID.id);
       
       // Load tracked events
       const newEvents = await dataStore.get('events')
@@ -170,13 +179,13 @@ export default function ceramicAnalytics(userConfig) {
       window.ceramicAnalyticsLoaded = true;
     },
     page: async ({ payload }) => {
-      await sendEventToCeramic(payload, 'page view', '🚀');
+      await sendEventToCeramic(payload, authenticatedDID, 'page view', '🚀');
     },
     track: async ({ payload }) => {
-      await sendEventToCeramic(payload, 'track event', '👀');
+      await sendEventToCeramic(payload, authenticatedDID, 'track event', '👀');
     },
     identify: async ({ payload }) => {
-      await sendEventToCeramic(payload, 'identify visitor event', '👩‍🌾');
+      await sendEventToCeramic(payload, authenticatedDID, 'identify visitor event', '👩‍🌾');
     },
     loaded: () => {
       return !!window.ceramicAnalyticsLoaded;
