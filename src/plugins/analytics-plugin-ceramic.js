@@ -29,7 +29,12 @@ const dataStore = new DIDDataStore({ ceramic, loader, model })
 
 export default function ceramicAnalytics(userConfig) {
   // plugin docs: https://getanalytics.io/plugins/writing-plugins
+  const appId = process.env.APP_ID
+  const nodeUrl = process.env.NODE_URL
+  const web3analyticsAddress = process.env.WEB3ANALYTICS
+  const paymasterAddress = process.env.PAYMASTER   
   let authenticatedDID
+
 
   // `seed` must be a 32-byte long Uint8Array
   async function authenticateCeramic(seed) {
@@ -48,19 +53,23 @@ export default function ceramicAnalytics(userConfig) {
       return did;
   }
 
+
+  async function checkAppRegistration() {
+    if (!ethers.utils.isAddress(appId)) return false;
+    const provider = new ethers.providers.JsonRpcProvider(process.env.NODE_URL);
+    const contract = await new
+    ethers.Contract(
+      process.env.WEB3ANALYTICS, 
+      Web3Analytics,
+      provider
+    )
+    return contract.isAppRegistered(appId)
+  }
+
+
   async function registerUser(privateKey, did) {
-    const appId = process.env.APP_ID
-    const nodeUrl = process.env.NODE_URL
-    const web3analyticsAddress = process.env.WEB3ANALYTICS
-    const paymasterAddress = process.env.PAYMASTER   
 
-
-    const confRinkeby = await { 
-      paymasterAddress: paymasterAddress,
-      relayLookupWindowBlocks: 1e5,
-      relayRegistrationLookupBlocks: 1e5,
-      pastEventsQueryMaxPageSize: 2e4,
-    }
+    // OpenGSN config
     const confStandard = await { 
       paymasterAddress: paymasterAddress,
     }
@@ -82,6 +91,17 @@ export default function ceramicAnalytics(userConfig) {
     ethers.Contract(web3analyticsAddress, Web3Analytics,
       provider.getSigner(signer.address, signer.privateKey))
 
+
+    // Check if user is already registered
+    const isRegistered = await contract.isUserRegistered(appId);
+    if (isRegistered) {
+      console.log(`User is registered. Address: ${signer.address} did: ${did}`)
+      return;
+    }
+
+    console.log(`Registering user Address: ${signer.address} did: ${did}`)
+
+    // If user is not registered, process now
     const transaction = await contract.addUser(
       did, 
       appId,
@@ -124,13 +144,6 @@ export default function ceramicAnalytics(userConfig) {
     });
     console.log(`New document id: ${docID}`)
 
-    // Load Event index again to verify it increased
-    const newEvents = await dataStore.get('events')
-    console.log(newEvents)
-
-    // Load Event document to verify it was added correctly
-    const retrieved = await TileDocument.load(ceramic, doc.id);
-    console.log(retrieved.content);    
   }
 
   function shortenKey(key) {
@@ -167,16 +180,22 @@ export default function ceramicAnalytics(userConfig) {
       authenticatedDID = await authenticateCeramic(seed);
       localStorage.setItem('authenticatedDID', authenticatedDID.id);
 
-      //TODO: Add check to see if user is already registered on blockchain
+      const isAppRegistered = await checkAppRegistration();
+      if (!isAppRegistered) {
+        console.log(`${ appId } is not a registered app. Tracking not enabled.`);
+        return;
+      }
+      console.log(`App is Registered: ${appId}`)
+
+      // Check event count
+      const newEvents = await dataStore.get('events')
+      console.log(newEvents)
 
       // attempt to register user on blockchain
       registerUser(privateKey, authenticatedDID.id);
       
-      // Load tracked events
-      const newEvents = await dataStore.get('events')
-      console.log(newEvents)  
-
-      window.ceramicAnalyticsLoaded = true;
+      window.ceramicAnalyticsLoaded = true;  
+      
     },
     page: async ({ payload }) => {
       await sendEventToCeramic(payload, authenticatedDID, 'page view', '🚀');
