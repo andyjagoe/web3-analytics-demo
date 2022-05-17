@@ -1,5 +1,4 @@
 import { CeramicClient } from '@ceramicnetwork/http-client'
-import { TileDocument } from '@ceramicnetwork/stream-tile'
 import { TileLoader } from '@glazed/tile-loader'
 import { DID } from 'dids';
 import { Secp256k1Provider } from 'key-did-provider-secp256k1'
@@ -34,6 +33,7 @@ export default function ceramicAnalytics(userConfig) {
   const web3analyticsAddress = process.env.WEB3ANALYTICS
   const paymasterAddress = process.env.PAYMASTER   
   let authenticatedDID
+  let q_ = Promise.resolve();
 
 
   // `seed` must be a 32-byte long Uint8Array
@@ -52,7 +52,6 @@ export default function ceramicAnalytics(userConfig) {
 
       return did;
   }
-
 
   async function checkAppRegistration() {
     if (!ethers.utils.isAddress(appId)) return false;
@@ -111,6 +110,11 @@ export default function ceramicAnalytics(userConfig) {
     const receipt = await provider.waitForTransaction(transaction.hash)
     console.log(receipt)
 
+  }
+
+  function queue(fn) {
+    q_ = q_.then(fn);
+    return q_;
   }
 
   async function sendEventToCeramic(payload, did, description, icon) {
@@ -198,13 +202,13 @@ export default function ceramicAnalytics(userConfig) {
       
     },
     page: async ({ payload }) => {
-      await sendEventToCeramic(payload, authenticatedDID, 'page view', '🚀');
+      queue(sendEventToCeramic.bind(null, payload, authenticatedDID, 'page view', '🚀'));
     },
     track: async ({ payload }) => {
-      await sendEventToCeramic(payload, authenticatedDID, 'track event', '👀');
+      queue(sendEventToCeramic.bind(null, payload, authenticatedDID, 'track event', '👀'));
     },
     identify: async ({ payload }) => {
-      await sendEventToCeramic(payload, authenticatedDID, 'identify visitor event', '👩‍🌾');
+      queue(sendEventToCeramic.bind(null, payload, authenticatedDID, 'identify visitor event', '👩‍🌾'));
     },
     loaded: () => {
       return !!window.ceramicAnalyticsLoaded;
