@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import Analytics from 'analytics';
 import { AnalyticsProvider } from 'use-analytics';
 import googleAnalytics from '@analytics/google-analytics';
-import ceramicAnalytics from './plugins/analytics-plugin-ceramic';
+import web3Analytics from 'analytics-plugin-web3analytics';
 import './index.css';
 import Application from './views/Application';
 import reportWebVitals from './reportWebVitals';
@@ -15,7 +15,10 @@ const analytics = Analytics({
     googleAnalytics({
       trackingId: 'UA-48308168-2',
     }),
-    ceramicAnalytics({}),
+    web3Analytics({
+      appId: process.env.APP_ID,
+      nodeUrl: process.env.NODE_URL
+    })
   ]
 })
 
