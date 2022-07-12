@@ -3807,10 +3807,10 @@
     "require-from-string" "^2.0.2"
     "uri-js" "^4.2.2"
 
-"analytics-plugin-web3analytics@^0.1.11":
-  "integrity" "sha512-P2uDIy+MoNH+Sg6fjPJ/Tx6/9opl1Ka/VqtJlTdnBaORqS22HVET4xIEnUSiYoaWghxxcyq2kYdoHRK+veu+Lg=="
-  "resolved" "https://registry.npmjs.org/analytics-plugin-web3analytics/-/analytics-plugin-web3analytics-0.1.11.tgz"
-  "version" "0.1.11"
+"analytics-plugin-web3analytics@^0.1.12":
+  "integrity" "sha512-DdiJ08AmaKZNVB++yTaJkyQHb/Wz6UMBBi/dCfhXUyP4bPtvQ80IJ0tq4VrzsgEfQZnMlI1IBferLKDV/k6o6A=="
+  "resolved" "https://registry.npmjs.org/analytics-plugin-web3analytics/-/analytics-plugin-web3analytics-0.1.12.tgz"
+  "version" "0.1.12"
   dependencies:
     "@ceramicnetwork/http-client" "^2.0.4"
     "@ethersproject/address" "^5.6.1"
