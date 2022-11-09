@@ -17,7 +17,8 @@ const analytics = Analytics({
     }),
     web3Analytics({
       appId: process.env.APP_ID,
-      jsonRpcUrl: process.env.NODE_URL
+      jsonRpcUrl: process.env.NODE_URL,
+      logLevel: "debug"
     })
   ]
 })
