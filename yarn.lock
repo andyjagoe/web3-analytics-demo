@@ -3628,10 +3628,10 @@
     "require-from-string" "^2.0.2"
     "uri-js" "^4.2.2"
 
-"analytics-plugin-web3analytics@^0.2.0":
-  "integrity" "sha512-cOQbA0go0OkCMDjkTYK5DikziSGPf+DJjjoAM16YuSBpwcVkVsggXdQGDQNhNdKNNARQSSj4Lx6LaNTDdJxW6A=="
-  "resolved" "https://registry.npmjs.org/analytics-plugin-web3analytics/-/analytics-plugin-web3analytics-0.2.0.tgz"
-  "version" "0.2.0"
+"analytics-plugin-web3analytics@^0.2.1":
+  "integrity" "sha512-XyqOfiMa5J84uqDKmTlz+dwWYBZnfkw0WtcEgXTjIzCUhXa8N/aYFidLI24q8kprL0nxBPA2lMn3ZqOIUOlRsw=="
+  "resolved" "https://registry.npmjs.org/analytics-plugin-web3analytics/-/analytics-plugin-web3analytics-0.2.1.tgz"
+  "version" "0.2.1"
   dependencies:
     "@ceramicnetwork/http-client" "^2.0.4"
     "@composedb/client" "^0.3.1"
