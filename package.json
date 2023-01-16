@@ -19,7 +19,7 @@
     "@types/react": "^18.0.5",
     "@types/react-dom": "^18.0.1",
     "analytics": "^0.8.1",
-    "analytics-plugin-web3analytics": "^0.2.1",
+    "analytics-plugin-web3analytics": "^0.2.2",
     "browserify-fs": "^1.0.0",
     "did-jwt": "^5.12.1",
     "dids": "^2.4.3",
