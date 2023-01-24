@@ -1,14 +1,10 @@
 # Web3 Analytics React Demo
 
-This demo shows how to use [Web3 Analytics](https://web3analytics.network/) to instrument an app that uses a package manager like NPM. Debug is enabled so you can see the full interaction in the console of the browser inspector. 
+This demo shows how to use [Web3 Analytics](https://web3analytics.network/) to instrument an app that uses a package manager like NPM. Debug is enabled so you can see the full interaction in the console of the browser inspector. Documentation for Web3 Analytics is available [here](https://web3-analytics.gitbook.io/product-docs/).
 
 [See demo](https://celadon-pothos-120129.netlify.app/)
 
-Click the 'Track event', 'Track page view', or 'Track identify visitor' to see interactions in the console.
-
-This example actually uses two back-ends in parallel, demonstrating how data can be sent to both Web3 Analytics and Google Analytics simultaneously.
-
-Documentation for Web3 Analytics is available [here](https://web3-analytics.gitbook.io/product-docs/).
+Click the 'Track event', 'Track page view', or 'Track identify visitor' to see interactions in the console. This example actually uses two back-ends in parallel, demonstrating how data can be sent to both Web3 Analytics and Google Analytics simultaneously.
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
